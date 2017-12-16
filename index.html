@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Color Palette using WASM and K-Means</title>
+
+    <link rel="stylesheet" href="//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+    <link rel="stylesheet" href="//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+
+        .colors {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .color-wrapper {
+            margin-right: 1em;
+        }
+
+        .color {
+            width: 200px;
+            height: 100px;
+            border: 1px solid black;
+        }
+
+        .color-wrapper span {
+            color: black;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Color Palette using WASM and K-Means</h1>
+
+        <div id="app">
+            <div>
+                <label for="image-input"> Select an image:</label>
+                <input type="file" name="image-input" id="image-input" accept='image/*' :disabled="!moduleInitialized" @change="handleFileChange" />
+                <label for="numColors">Select number of colors:</label>
+                <select name="numColors" v-model="numColors">
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                </select>
+            </div>
+            <button @click="run" :disabled="!moduleInitialized || !imageLoaded">Run</button>
+            <div class="colors" @mouseleave="handleMouseLeaveColors">
+                <div class="color-wrapper" v-for="(color, index) in colors">
+                    <div class="color"  :style="{backgroundColor: getRgbaColor(color)}" @mouseover="() => handleMouseOverColor(index)"></div>
+                    <span>{{getRgbaColor(color)}}</span>
+                </div>
+            </div>
+            <div>
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="colors.js"></script>
+    <script src="js/index.js"></script>
+</body>
+
+</html>
