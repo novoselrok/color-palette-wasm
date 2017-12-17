@@ -1,7 +1,7 @@
 var MAX_WIDTH = 1024;
 var VEC_LEN = 4;
 
-var worker = new Worker('../worker.js');
+var worker = new Worker('worker.js');
 
 var App = new Vue({
     el: '#app',
