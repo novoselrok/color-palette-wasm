@@ -1,6 +1,8 @@
 var MAX_WIDTH = 1024;
 var VEC_LEN = 4;
 
+var worker = new Worker('../worker.js');
+
 var App = new Vue({
     el: '#app',
     data: {
@@ -16,6 +18,7 @@ var App = new Vue({
         height: 0,
 
         numColors: '4',
+        running: false
     },
     created: function () {
         var app = this;
@@ -23,11 +26,18 @@ var App = new Vue({
         app.$on('moduleInitializedEvent', function () {
             app.moduleInitialized = true;
         });
+
+        app.$on('kmeansDone', function (data) {
+            app.colors = data[0];
+            app.labels = data[1];
+            app.running = false;
+        });
     },
     methods: {
         run: function() {
             // Run the algorithm
             var app = this;
+            app.running = true;
             var ctx = document.getElementById('canvas').getContext('2d');
 
             // Prepare the parameters
@@ -35,38 +45,9 @@ var App = new Vue({
             var k = parseInt(this.numColors, 10);
             var imgData = Float64Array.from(data.data);
             var numPixels = imgData.length / VEC_LEN;
-
-            // Allocate the memory
-            var imgMem = Module._malloc(imgData.length * Float64Array.BYTES_PER_ELEMENT);
-            var centersMem = Module._malloc(k * VEC_LEN * Float64Array.BYTES_PER_ELEMENT);
-            var labelsMem = Module._malloc(numPixels * Int32Array.BYTES_PER_ELEMENT);
-
-            Module.HEAPF64.set(imgData, imgMem / Float64Array.BYTES_PER_ELEMENT);
-            Module.HEAP32.set(Int32Array.from(Array.from(Array(numPixels)).map(function (i, a) { return -1 })), labelsMem / Int32Array.BYTES_PER_ELEMENT);
-
-            // Run the algorithm
-            Module._kmeans_from_js(k, imgMem, imgData.length, centersMem, labelsMem);
-
-            // Get the results
-            var centers = Module.HEAPF64.subarray(centersMem / Float64Array.BYTES_PER_ELEMENT, (centersMem / Float64Array.BYTES_PER_ELEMENT) + (k * VEC_LEN));
-            app.labels = Module.HEAP32.subarray(labelsMem / Int32Array.BYTES_PER_ELEMENT, (labelsMem / Int32Array.BYTES_PER_ELEMENT) + numPixels);
             app.pixels = Array.from(imgData);
 
-            centers = Array.from(centers).map(function (c) {
-                return Math.round(c);
-            });
-            
-            // Break centers into 2D array
-            var colors = [];
-            while (centers.length > 0) {
-                colors.push(centers.splice(0, VEC_LEN));
-            }
-            app.colors = colors;
-            
-            // Free the memory
-            Module._free(imgMem);
-            Module._free(centersMem);
-            Module._free(labelsMem);
+            worker.postMessage([imgData, k, numPixels]);
         },
         handleFileChange: function (ev) {
             var app = this;
@@ -147,6 +128,11 @@ var App = new Vue({
     }
 });
 
-Module['onRuntimeInitialized'] = function() {
-    App.$emit('moduleInitializedEvent');
-};
+worker.onmessage = function (e) {
+    var data = e.data;
+    if (data[0] === "init") {
+        App.$emit('moduleInitializedEvent');
+    } else if (data[0] === "result") {
+        App.$emit('kmeansDone', data.splice(1));
+    }
+}

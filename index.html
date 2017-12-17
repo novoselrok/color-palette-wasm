@@ -34,17 +34,83 @@
             display: flex;
             justify-content: center;
         }
+
+        .loader,
+        .loader:before,
+        .loader:after {
+            border-radius: 50%;
+            width: 2.5em;
+            height: 2.5em;
+            -webkit-animation-fill-mode: both;
+            animation-fill-mode: both;
+            -webkit-animation: load7 1.8s infinite ease-in-out;
+            animation: load7 1.8s infinite ease-in-out;
+        }
+
+        .loader {
+            color: #9b4dca;
+            font-size: 10px;
+            margin: 80px auto;
+            position: relative;
+            text-indent: -9999em;
+            -webkit-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-animation-delay: -0.16s;
+            animation-delay: -0.16s;
+        }
+
+        .loader:before,
+        .loader:after {
+            content: '';
+            position: absolute;
+            top: 0;
+        }
+
+        .loader:before {
+            left: -3.5em;
+            -webkit-animation-delay: -0.32s;
+            animation-delay: -0.32s;
+        }
+
+        .loader:after {
+            left: 3.5em;
+        }
+
+        @-webkit-keyframes load7 {
+            0%,
+            80%,
+            100% {
+                box-shadow: 0 2.5em 0 -1.3em;
+            }
+            40% {
+                box-shadow: 0 2.5em 0 0;
+            }
+        }
+
+        @keyframes load7 {
+            0%,
+            80%,
+            100% {
+                box-shadow: 0 2.5em 0 -1.3em;
+            }
+            40% {
+                box-shadow: 0 2.5em 0 0;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <h1>Color Palette using WASM and K-Means</h1>
-        <p>Check out the code <a href="https://github.com/novoselrok/color-palette-wasm">here</a>.</p>
+        <p>Check out the code
+            <a href="https://github.com/novoselrok/color-palette-wasm">here</a>.</p>
         <div id="app">
             <div>
                 <label for="image-input"> Select an image:</label>
-                <input type="file" name="image-input" id="image-input" accept='image/*' :disabled="!moduleInitialized" @change="handleFileChange" />
+                <input type="file" name="image-input" id="image-input" accept='image/*' :disabled="!moduleInitialized" @change="handleFileChange"
+                />
                 <label for="numColors">Select number of colors:</label>
                 <select name="numColors" v-model="numColors">
                     <option>2</option>
@@ -55,9 +121,11 @@
                 </select>
             </div>
             <button @click="run" :disabled="!moduleInitialized || !imageLoaded">Run</button>
-            <div class="colors" @mouseleave="handleMouseLeaveColors">
+
+            <div class="loader" v-if="running">Loading...</div>
+            <div v-else="" class="colors" @mouseleave="handleMouseLeaveColors">
                 <div class="color-wrapper" v-for="(color, index) in colors">
-                    <div class="color"  :style="{backgroundColor: getRgbaColor(color)}" @mouseover="() => handleMouseOverColor(index)"></div>
+                    <div class="color" :style="{backgroundColor: getRgbaColor(color)}" @mouseover="() => handleMouseOverColor(index)"></div>
                     <span>{{getRgbaColor(color)}}</span>
                 </div>
             </div>
@@ -67,7 +135,6 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-    <script src="colors.js"></script>
     <script src="js/index.js"></script>
 </body>
 

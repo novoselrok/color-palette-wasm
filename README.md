@@ -26,5 +26,5 @@ emcc main.c -O3 -o colors.js -s WASM=1 -s EXPORTED_FUNCTIONS="['_kmeans_from_js'
 ```
 
 ## Todo
-- Move the k-means calculation to a WebWorker
+- ~~Move the k-means calculation to a WebWorker~~
 - Use k-means++ for initial centers
